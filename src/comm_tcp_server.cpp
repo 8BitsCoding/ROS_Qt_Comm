@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   int count = 0;
 
   // TCP Param
-  int sockfd, newsockfd, portno;
+  int sockfd, newsockfd, n, portno;
   socklen_t clilen;
   char buffer[256];
   struct sockaddr_in serv_addr, cli_addr;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     ROS_INFO("%s", message.data.c_str());
 
     // tcp/ip로 입력받은 msg를 pub
-    server_pub.publish(message);
+    ros_tutorial_pub.publish(message);
 
     // tcp/ip로 send
     n = write(newsockfd,"I got your message",18);

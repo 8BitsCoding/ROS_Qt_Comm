@@ -77,6 +77,9 @@ int main(int argc, char **argv)
 		if (strcmp(argv[3], "-e") == 0)
 			echoMode = true;
 
+  // 서버 ip주소 할당
+  server = gethostbyname(argv[1]);
+
   // 포트번호 할당 및 소킷 할당
   portno = atoi(argv[2]);
 
@@ -98,11 +101,11 @@ int main(int argc, char **argv)
       n = read(sockfd, buffer ,255);
       if(n < 0)
       {
-        DisConnection();
-        Connection();
+        this->DisConnection();
+        this->Connection();
         //error("ERROR reading reply");
       }
-        
+
       printf("%s\n", buffer);
     }
 
@@ -123,9 +126,6 @@ void Connection()
   if (sockfd < 0) 
     error("ERROR opening socket");
 	
-  // 서버 ip주소 할당
-  server = gethostbyname(argv[1]);
-
   // 소켓 초기화
   bzero((char *) &serv_addr, sizeof(serv_addr));
 
