@@ -74,41 +74,40 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-    msg.stamp = ros::Time::now();
-    msg.data = count;
-
-    ROS_INFO("send msg = %d", msg.stamp.sec);
-    ROS_INFO("send msg = %d", msg.stamp.nsec);
-    ROS_INFO("send msg = %d", msg.data);
-
-    ros_tutorial_pub.publish(msg);
-
-
-    loop_rate.sleep();
-
-    ++count;
-
-    //////////////////////////////////////////
-
+    // 버퍼를 비우고
     ss.str(std::string()); //Clear contents of string stream
     bzero(buffer,256);
 
+    // read를 대기
     n = read(newsockfd,buffer,255);
 
+    // 에러처리
     if (n < 0) error("ERROR reading from socket");
     // printf("Here is the message: %s\n",buffer);
+    
+    // 들어온 문자열을 stringstream에 넣고
+    // 참고) std::stringstream ss;
     ss << buffer;
 
+    // 참고) std_msgs::String message;
     message.data = ss.str();
-
     ROS_INFO("%s", message.data.c_str());
 
+    // tcp/ip로 입력받은 msg를 pub
     server_pub.publish(message);
 
+    // tcp/ip로 send
     n = write(newsockfd,"I got your message",18);
 
+    // send Error 처리
     if (n < 0) error("ERROR writing to socket");
+
+      //ros::spinOnce();
+      //d.sleep();
   }
+
+  close(newsockfd);
+  close(sockfd);
 
   return 0;
 }
