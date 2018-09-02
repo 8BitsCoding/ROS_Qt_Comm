@@ -21,7 +21,7 @@ class EthernetManage {
 public:
   void DisConnection();
   void Connection();
-  bool Send_Data();
+  void Send_Data();
   void Receive_data();
   void error(const char *msg);
 
@@ -69,6 +69,10 @@ void EthernetManage::Send_Data()
 {
   n = write(sockfd, buffer ,strlen(buffer));
 
+  printf("%d", sockfd);
+  printf("%s", buffer);
+  printf("%d", strlen(buffer));
+
   if(n < 0)
     error("ERROR writing to socket");
 }
@@ -76,13 +80,14 @@ void EthernetManage::Send_Data()
 void EthernetManage::Receive_data()
 {
   if(echoMode) {
-  bzero(buffer, 256);
-  n = read(sockfd, buffer ,255);
-  if(n < 0)
-  {
-    DisConnection();
-    Connection();
-    //error("ERROR reading reply");
+    bzero(buffer, 256);
+    n = read(sockfd, buffer ,255);
+    if(n < 0)
+    {
+      DisConnection();
+      Connection();
+      //error("ERROR reading reply");
+    }
   }
 }
 
@@ -142,22 +147,24 @@ int main(int argc, char **argv)
   // 포트번호 할당 및 소킷 할당
   m_EthManage.portno = atoi(argv[2]);
 
+  // Connection
+  m_EthManage.Connection();
+
   while(ros::ok()) {
-      // 버퍼를 비우고
-      bzero(m_EthManage.buffer,256);
+    // 버퍼를 비우고
+    bzero(m_EthManage.buffer,256);
 
-      // 보낼 문자열 입력
-      printf("Please enter the message : ");
-      fgets(m_EthManage.buffer, 255, stdin);
+    // 보낼 문자열 입력
+    printf("Please enter the message : ");
+    fgets(m_EthManage.buffer, 255, stdin);
 
-      // Send Data
-      m_EthManage.Send_Data();
+    // Send Data
+    m_EthManage.Send_Data();
 
-      // Receive Data
-      m_EthManage.Receive_data();
+    // Receive Data
+    m_EthManage.Receive_data();
 
-      printf("%s\n", m_EthManage.buffer);
-    }
+    printf("%s\n", m_EthManage.buffer);
 
     ros::spinOnce();
   }
