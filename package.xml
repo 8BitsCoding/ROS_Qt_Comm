@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros_tutorial_comm</name>
+  <version>0.1.0</version>
+  <description>The ros_tutorial_comm package</description>
+
+<maintainer email="kimtaehyung@todo.todo">kimtaehyung</maintainer>
+<license>Apache 2.0</license>
+
+<author >kimtaehyung</author>
+
+
+<buildtool_depend>catkin</buildtool_depend>
+<build_depend>message_generation</build_depend>
+<build_depend>std_msgs</build_depend>
+<build_depend>roscpp</build_depend>
+
+<build_export_depend>roscpp</build_export_depend>
+<build_export_depend>std_msgs</build_export_depend>
+
+<exec_depend>std_msgs</exec_depend>
+<exec_depend>roscpp</exec_depend>
+
+<export>
+
+
+</export>
+</package>
