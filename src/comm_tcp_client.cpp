@@ -22,7 +22,7 @@ public:
   void DisConnection();
   void Connection();
   bool Send_Data();
-  static void Receive_data(void* arg);
+  void Receive_data();
   void error(const char *msg);
 
   // tcp 통신 파라미터 세팅
@@ -63,6 +63,27 @@ void EthernetManage::DisConnection()
 void EthernetManage::error(const char *msg) {
     perror(msg);
     exit(0);
+}
+
+void EthernetManage::Send_Data()
+{
+  n = write(sockfd, buffer ,strlen(buffer));
+
+  if(n < 0)
+    error("ERROR writing to socket");
+}
+
+void EthernetManage::Receive_data()
+{
+  if(echoMode) {
+  bzero(buffer, 256);
+  n = read(sockfd, buffer ,255);
+  if(n < 0)
+  {
+    DisConnection();
+    Connection();
+    //error("ERROR reading reply");
+  }
 }
 
 
@@ -122,27 +143,18 @@ int main(int argc, char **argv)
   m_EthManage.portno = atoi(argv[2]);
 
   while(ros::ok()) {
-    // 버퍼를 비우고
-    bzero(m_EthManage.buffer,256);
+      // 버퍼를 비우고
+      bzero(m_EthManage.buffer,256);
 
-    // 보낼 문자열 입력
-    printf("Please enter the message : ");
-    fgets(m_EthManage.buffer, 255, stdin);
+      // 보낼 문자열 입력
+      printf("Please enter the message : ");
+      fgets(m_EthManage.buffer, 255, stdin);
 
-    m_EthManage.n = write(m_EthManage.sockfd, m_EthManage.buffer ,strlen(m_EthManage.buffer));
+      // Send Data
+      m_EthManage.Send_Data();
 
-    if(m_EthManage.n < 0)
-      m_EthManage.error("ERROR writing to socket");
-
-    if(m_EthManage.echoMode) {
-      bzero(m_EthManage.buffer, 256);
-      m_EthManage.n = read(m_EthManage.sockfd, m_EthManage.buffer ,255);
-      if(m_EthManage.n < 0)
-      {
-        m_EthManage.DisConnection();
-        m_EthManage.Connection();
-        //error("ERROR reading reply");
-      }
+      // Receive Data
+      m_EthManage.Receive_data();
 
       printf("%s\n", m_EthManage.buffer);
     }
