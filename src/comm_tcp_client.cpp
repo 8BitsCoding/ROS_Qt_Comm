@@ -17,12 +17,48 @@
 
 #define MESSAGE_FREQ 1
 
+class EthernetManage {
+public:
+  void DisConnection();
+  int Connection();
+  bool Send_Data();
+  static void Receive_data(void* arg);
+
+private:
   // tcp 통신 파라미터 세팅
   int sockfd, portno, n, choice = 1;
   struct sockaddr_in serv_addr;
   struct hostent *server;
-  char buffer[256];
+  char buffer[256] = "\0";
   bool echoMode = false;
+}
+
+void EthernetManage::Connection()
+{
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  // 소킷 할당 확인
+  if (sockfd < 0) 
+    error("ERROR opening socket");
+	
+  // 소켓 초기화
+  bzero((char *) &serv_addr, sizeof(serv_addr));
+
+  // 주소할당
+  serv_addr.sin_family = AF_INET;
+  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+  serv_addr.sin_port = htons(portno);
+
+  // 서버에 connect 시도
+  if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+    error("ERROR connecting");
+}
+
+void EthernetManage::DisConnection()
+{
+	closesocket(sockfd);
+}
+
 
 /*
 // 알아두면 좋을 듯 하여 복사해둠. 참고하시오.
@@ -75,38 +111,40 @@ int main(int argc, char **argv)
   // 에코모드 확인
   if (argc > 3)
 		if (strcmp(argv[3], "-e") == 0)
-			echoMode = true;
+			m_EthManage.echoMode = true;
+
+  EthernetManage m_EthManage;
 
   // 서버 ip주소 할당
-  server = gethostbyname(argv[1]);
+  m_EthManage.server = gethostbyname(argv[1]);
 
   // 포트번호 할당 및 소킷 할당
-  portno = atoi(argv[2]);
+  m_EthManage.portno = atoi(argv[2]);
 
   while(ros::ok()) {
     // 버퍼를 비우고
-    bzero(buffer,256);
+    bzero(m_EthManage.buffer,256);
 
     // 보낼 문자열 입력
     printf("Please enter the message : ");
-    fgets(buffer, 255, stdin);
+    fgets(m_EthManage.buffer, 255, stdin);
 
-    n = write(sockfd, buffer ,strlen(buffer));
+    n = write(m_EthManage.sockfd, m_EthManage.buffer ,strlen(m_EthManage.buffer));
 
     if(n < 0)
       error("ERROR writing to socket");
 
-    if(echoMode) {
-      bzero(buffer, 256);
-      n = read(sockfd, buffer ,255);
-      if(n < 0)
+    if(m_EthManage.echoMode) {
+      bzero(m_EthManage.buffer, 256);
+      m_EthManage.n = read(m_EthManage.sockfd, m_EthManage.buffer ,255);
+      if(m_EthManage.n < 0)
       {
-        this->DisConnection();
-        this->Connection();
+        m_EthManage.DisConnection();
+        m_EthManage.Connection();
         //error("ERROR reading reply");
       }
 
-      printf("%s\n", buffer);
+      printf("%s\n", m_EthManage.buffer);
     }
 
     ros::spinOnce();
@@ -118,28 +156,3 @@ int main(int argc, char **argv)
 }
 
 
-void Connection()
-{
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-  // 소킷 할당 확인
-  if (sockfd < 0) 
-    error("ERROR opening socket");
-	
-  // 소켓 초기화
-  bzero((char *) &serv_addr, sizeof(serv_addr));
-
-  // 주소할당
-  serv_addr.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-  serv_addr.sin_port = htons(portno);
-
-  // 서버에 connect 시도
-  if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-    error("ERROR connecting");
-}
-
-void DisConnection()
-{
-	closesocket(sockfd);
-}
