@@ -20,18 +20,18 @@
 class EthernetManage {
 public:
   void DisConnection();
-  int Connection();
+  void Connection();
   bool Send_Data();
   static void Receive_data(void* arg);
+  void error(const char *msg);
 
-private:
   // tcp 통신 파라미터 세팅
   int sockfd, portno, n, choice = 1;
   struct sockaddr_in serv_addr;
   struct hostent *server;
   char buffer[256] = "\0";
   bool echoMode = false;
-}
+};
 
 void EthernetManage::Connection()
 {
@@ -56,7 +56,13 @@ void EthernetManage::Connection()
 
 void EthernetManage::DisConnection()
 {
-	closesocket(sockfd);
+  close(sockfd);
+}
+
+// 에러처리
+void EthernetManage::error(const char *msg) {
+    perror(msg);
+    exit(0);
 }
 
 
@@ -81,12 +87,6 @@ char* Listener::getMessageValue() {
 }
 */
 
-// 에러처리
-void error(const char *msg) {
-    perror(msg);
-    exit(0);
-}
-
 
 void chatterCallback( const ros_tutorial_comm::MsgTutorial::ConstPtr& msg)
 {
@@ -108,12 +108,12 @@ int main(int argc, char **argv)
       exit(0);
   }
 
+  EthernetManage m_EthManage;
+
   // 에코모드 확인
   if (argc > 3)
 		if (strcmp(argv[3], "-e") == 0)
 			m_EthManage.echoMode = true;
-
-  EthernetManage m_EthManage;
 
   // 서버 ip주소 할당
   m_EthManage.server = gethostbyname(argv[1]);
@@ -129,10 +129,10 @@ int main(int argc, char **argv)
     printf("Please enter the message : ");
     fgets(m_EthManage.buffer, 255, stdin);
 
-    n = write(m_EthManage.sockfd, m_EthManage.buffer ,strlen(m_EthManage.buffer));
+    m_EthManage.n = write(m_EthManage.sockfd, m_EthManage.buffer ,strlen(m_EthManage.buffer));
 
-    if(n < 0)
-      error("ERROR writing to socket");
+    if(m_EthManage.n < 0)
+      m_EthManage.error("ERROR writing to socket");
 
     if(m_EthManage.echoMode) {
       bzero(m_EthManage.buffer, 256);
